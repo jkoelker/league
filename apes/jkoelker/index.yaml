@@ -1,0 +1,123 @@
+---
+positions:
+  # If it is just a string, resolve ./AAPL.yaml and append it's contents
+  # In the file ticker *MAY* be ommited, and it will be set the the string
+  # value (e.g. `AAPL`).
+  - AAPL
+
+  # If it has the key `file` load from that file, *MUST* specify `ticker`
+  - ticker: TSLA
+    file: TSLA.yaml
+
+  # TODO: define future types
+  - ticker: /ES
+    file: slash-ES.yaml
+
+  # A Stock position.
+  # `close` may be omitted and will be assumed `null` / open
+  # `notes` may be omitted and will be assumed empty
+  # `notes` may be just a string and will be assumed to be the open note
+  - type: stock
+    direction: long
+    quantity: 100
+    ticker: AAPL
+    open:
+      date: 2021-05-11
+      price: 137.23
+    close:
+      date: 2021-05-21
+      price: 144.3
+    notes:
+      open: ""
+      close: ""
+
+  # An option position.
+  # `close` may have the special value `-1` to signal assignment of that leg
+  #         the actual close value will be used 0, and an associated stock
+  #         position will be auto generated
+  - type: option
+    quantity: 1
+    ticker: AAPL
+    legs:
+      - type: call
+        direction: short
+        expiration: 2021-05-21
+        strike: 140.0
+        open:
+          date: 2021-05-11
+          price: 0.40
+        close:
+          date: 2021-05-21
+          price: 0.10
+
+      - type: call
+        direction: long
+        expiration: 2021-05-21
+        strike: 145.0
+        open:
+          date: 2021-05-11
+          price: 0.35
+        close:
+          date: 2021-05-21
+          price: 0.05
+    notes:
+      open: ""
+      close: ""
+
+  # Common strategies have special templates that resolve to the full option
+  # definition
+  # Fragments like `open.date` can contain common data for the legs
+  - type: option
+    quantity: 1
+    ticker: AAPL
+    spread:
+      type: credit
+      instrument: call
+      expiration: 2021-05-21
+      open:
+        date: 2021-05-11
+      legs:
+        - strike: 140.0
+          open:
+            price: 0.40
+        - strike: 145.0
+          open:
+            price: 0.35
+
+  - type: option
+    quantity: 1
+    ticker: AAPL
+    strangle:
+      direction: short
+      expiration: 2021-05-21
+      open:
+        date: 2021-05-11
+      legs:
+        - strike: 130.0
+          open:
+            price: 0.30
+        - strike: 145.0
+          open:
+            price: 0.25
+
+  - type: option
+    quantity: 1
+    ticker: AAPL
+    put:
+      direction: short
+      expiration: 2021-05-21
+      strike: 130.0
+      open:
+        date: 2021-05-11
+        price: 0.30
+
+  - type: option
+    quantity: 1
+    ticker: AAPL
+    call:
+      direction: long
+      expiration: 2021-05-21
+      strike: 145.0
+      open:
+        date: 2021-05-11
+        price: 0.25
