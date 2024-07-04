@@ -1,0 +1,287 @@
+---
+# Directions, types, instruments, and trades are the basic building blocks of
+# the portfolio. They are used to define the portfolio and are used to generate
+# the final report.
+
+# Directions define the direction of the trade and the multiplier to apply to
+# the quantity. The multiplier is used to calculate the total value of the
+# position. For example, a long position in a stock has a multiplier of 1, and
+# a short position has a multiplier of -1. This is used to calculate the total
+# value of the position.
+directions:
+  - type: long
+    name: Long
+    description: A long position
+    multiplier: 1
+
+  - type: short
+    name: Short
+    description: A short position
+    multiplier: -1
+
+# Security types define the type of security and the multiplier to apply to the
+# quantity. The multiplier is used to calculate the total value of the position.
+# For example, a stock position has a multiplier of 1, and an option position
+# has a multiplier of 100. This is used to calculate the total value of the
+# position. If a security type is not defined, it is assumed to have a
+# multiplier of 1.
+security:
+  - type: stock
+    name: Stock
+    description: A stock position
+    multiplier: 1
+
+  - type: call
+    name: Call
+    description: A call option
+    multiplier: 100
+
+  - type: put
+    name: Put
+    description: A put option
+    multiplier: 100
+
+  - type: future
+    name: Future
+    description: A future position
+    multiplier: 1
+
+  - type: bond
+    name: Bond
+    description: A bond position
+    multiplier: 1
+
+# Instruments define the security type, name, and multiplier for each security
+# in the portfolio. The multiplier is used to calculate the total value of the
+# position. If an instrument is not defined, it is assumed to have a multiplier
+# of 1.
+instruments:
+  - type: future
+    name: "/ES"
+    description: E-Mini S&P 500
+    multiplier: 50
+
+  - type: future
+    name: "/NQ"
+    description: E-Mini Nasdaq 100
+    multiplier: 20
+
+  - type: stock
+    name: AAPL
+    description: Apple Inc.
+    multiplier: 1
+
+# Strategies can be defined to group trades together. This is useful for
+# generating reports and analyzing the portfolio. They are completely optional.
+strategies:
+  - strategy: credit_spread
+    name: Credit Spread
+    description: >-
+      A credit spread is a strategy where a short option is sold and
+      a long option is bought. The short option is closer to the
+      money and has a higher premium than the long option. The
+      strategy is used to generate income and limit risk.
+
+  - strategy: buy_write
+    name: Buy-Write
+    description: >-
+      A buy-write is a strategy where a stock is bought and a call
+      option is sold. The strategy is used to generate income and
+      limit risk.
+
+trades:
+  # A trade is a single position in the portfolio. It can be any security type
+  # defined. For example a long stock postion.
+  - security: stock
+    direction: long
+    quantity: 100
+    instrument: AAPL
+    date: 2021-05-11
+    price: 137.23
+    note: Any notes to display for this trade.
+
+  # direction, instrument, and security are just syntactic sugar for the
+  # following equivalent trade. The above trade is equivalent to the below
+  # trade.
+  - direction:
+      type: long
+      name: Long
+      description: A long position
+      multiplier: 1
+    instrument:
+      instrument: AAPL
+      type:
+        type: stock
+        name: Stock
+        description: A stock position
+        multiplier: 1
+      name: Apple Inc.
+      multiplier: 1
+    quantity: 100
+    price: 137.23
+    date: 2021-05-11
+
+  # A covered call of the above long stock position.
+  - security: call
+    direction: short
+    quantity: 1
+    instrument: AAPL
+    expiration: 2021-05-21
+    strike: 140.0
+    date: 2021-05-11
+    price: 0.40
+    note: Any notes to display for this trade.
+
+  # The above covered call trade is equivalent to the below trade.
+  - direction:
+      type: short
+      name: Short
+      description: A short position
+      multiplier: -1
+    instrument:
+      instrument: AAPL
+      type:
+        type: call
+        name: Call
+        description: A call option
+        multiplier: 100
+      name: Apple Inc.
+      multiplier: 1
+    quantity: 1
+    expiration: 2021-05-21
+    strike: 140.0
+    price: 0.40
+    date: 2021-05-11
+
+  # Closing a trade by specifying an opposite trade, flatting the position.
+  - security: call
+    direction: long
+    quantity: 1
+    instrument: AAPL
+    expiration: 2021-05-21
+    strike: 145.0
+    date: 2021-05-14
+    price: 0.35
+    note: Any notes to display for this trade.
+
+  # The above closing trade is equivalent to the below trade.
+  - direction:
+      type: long
+      name: Long
+      description: A long position
+      multiplier: 1
+    instrument:
+      instrument: AAPL
+      type:
+        type: call
+        name: Call
+        description: A call option
+        multiplier: 100
+      name: Apple Inc.
+      multiplier: 1
+    quantity: 1
+    expiration: 2021-05-21
+    strike: 145.0
+    price: 0.35
+    date: 2021-05-14
+
+  # Sell the stock closing the position.
+  - security: stock
+    direction: short
+    quantity: 100
+    instrument: AAPL
+    date: 2021-05-21
+    price: 144.3
+    note: Any notes to display for this trade.
+
+  # So that we zero out all out trads, here is the equivalent trade.
+  - direction:
+      type: short
+      name: Short
+      description: A short position
+      multiplier: -1
+    instrument:
+      instrument: AAPL
+      type:
+        type: stock
+        name: Stock
+        description: A stock position
+        multiplier: 1
+      name: Apple Inc.
+      multiplier: 1
+    quantity: 100
+    price: 144.3
+    date: 2021-05-21
+
+  # Sell a naked put. Note that if quantity is omitted, it is assumed to be 1.
+  - security: put
+    direction: short
+    instrument: AAPL
+    expiration: 2021-05-21
+    strike: 130.0
+    date: 2021-05-11
+    price: 0.30
+
+  # Special syntactic sugar for common strategies. Legs are resolved to
+  # the full trade definition using the context of the outter trade.
+  # The `strategy` key can be any string, and is used to group trades together.
+  # If the `strategy` key is defined in the `strategies` section, the name and
+  # description will be used for display.
+  - strategy: credit_spread
+    instrument: AAPL
+    security: call
+    date: 2021-05-11
+    expiration: 2021-05-21
+    legs:
+      - direction: short
+        strike: 140.0
+        price: 0.40
+      - direction: long
+        strike: 145.0
+        price: 0.35
+
+  # Close the above trade by specifying an opposite trade, flatting the
+  # position.
+  - strategy: credit_spread
+    instrument: AAPL
+    security: call
+    date: 2021-05-12
+    expiration: 2021-05-21
+    legs:
+      - direction: long
+        strike: 140.0
+        price: 0.40
+      - direction: short
+        strike: 145.0
+        price: 0.35
+
+  # An example of a Buy-Write strategy. The stock is bought and a call is sold.
+  - strategy: buy_write
+    instrument: AAPL
+    legs:
+      - security: stock
+        direction: long
+        quantity: 100
+        date: 2021-05-11
+        price: 137.23
+      - security: call
+        direction: short
+        quantity: 1
+        expiration: 2021-05-21
+        strike: 140.0
+        date: 2021-05-11
+        price: 0.40
+
+  # If it is just a string, resolve ./AAPL.yaml and append it's contents
+  # In the file instrument *MAY* be ommited, and it will be set the the string
+  # value (e.g. `AAPL`).
+  - AAPL
+
+  # If it has the key `file` load from that file. Any additional keys will
+  # will be used as defaults if the file's positions do not have them.
+  # The default instrument will be the filename without the extension.
+  # (e.g. `TSLA.yaml` will set the optional `ticker` to `TSLA`).
+  - file: TSLA.yaml
+
+  - security: stock
+    file: 2024-stock.yaml
